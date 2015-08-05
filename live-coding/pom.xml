@@ -12,5 +12,6 @@
 
     <modules>
         <module>../java</module>
+        <module>processor</module>
     </modules>
 </project>
