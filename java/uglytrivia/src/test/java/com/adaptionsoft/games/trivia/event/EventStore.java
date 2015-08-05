@@ -31,9 +31,6 @@ public class EventStore extends ExternalResource {
         this.postProcessors = new ArrayList<>();
         
         this.currentLine = new StringBuilder();
-
-        this.preProcessors.add(line -> console.format("%25s -> ", line));
-        this.postProcessors.add(console::println);
     }
 
     @Override
@@ -62,6 +59,12 @@ public class EventStore extends ExternalResource {
 
     public EventStore start() {
         events.clear();
+        return this;
+    }
+
+    public EventStore debug() {
+        preProcessors.add(line -> console.format("%25s -> ", line));
+        postProcessors.add(console::println);
         return this;
     }
 
