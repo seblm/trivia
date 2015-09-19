@@ -12,6 +12,7 @@
     </properties>
 
     <modules>
+        <module>processor</module>
         <module>uglytrivia</module>
     </modules>
 </project>
