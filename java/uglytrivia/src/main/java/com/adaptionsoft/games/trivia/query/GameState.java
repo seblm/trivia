@@ -3,6 +3,7 @@ package com.adaptionsoft.games.trivia.query;
 import com.adaptionsoft.games.trivia.Category;
 import com.adaptionsoft.games.trivia.event.*;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -150,6 +151,10 @@ public class GameState implements EventsListener {
     public void on(UnknownEvent event) {
     }
 
+    public GameState copy() {
+        return new GameState(players.copy(), questions.copy(), Optional.ofNullable(currentCategory.orElse(null)), Optional.ofNullable(currentPlayer.orElse(null)), Optional.ofNullable(dice.orElse(null)), false);
+    }
+
     private void write() {
         file.map(Path::toFile).ifPresent(fileToWrite -> {
             try {
@@ -158,6 +163,15 @@ public class GameState implements EventsListener {
                 throw new UncheckedIOException(e);
             }
         });
+    }
+
+    @Override
+    public String toString() {
+        try {
+            return mapper.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            return e.getMessage();
+        }
     }
 
     public static void main(String[] args) {

@@ -13,6 +13,7 @@
 
     <modules>
         <module>processor</module>
+        <module>trivia-ui</module>
         <module>uglytrivia</module>
     </modules>
 </project>

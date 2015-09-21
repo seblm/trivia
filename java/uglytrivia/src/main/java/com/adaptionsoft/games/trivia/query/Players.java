@@ -27,4 +27,10 @@ public class Players {
     public Map<String, Player> getPlayers() {
         return unmodifiableSortedMap(players);
     }
+    
+    public Players copy() {
+        Players copy = new Players();
+        players.forEach((name, player) -> copy.players.put(name, player.copy()));
+        return copy;
+    }
 }
