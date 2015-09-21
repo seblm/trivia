@@ -13,5 +13,6 @@
     <modules>
         <module>../java</module>
         <module>processor</module>
+        <module>trivia-ui</module>
     </modules>
 </project>

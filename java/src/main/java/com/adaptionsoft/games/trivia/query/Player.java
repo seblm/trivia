@@ -46,6 +46,14 @@ public class Player {
         this.inPenaltyBox = inPenaltyBox;
         return this;
     }
+    
+    public Player copy() {
+        Player copy = new Player(name);
+        copy.location = location;
+        copy.goldCoins = goldCoins;
+        copy.inPenaltyBox = inPenaltyBox;
+        return copy;
+    }
 
     @Override
     public boolean equals(Object o) {
