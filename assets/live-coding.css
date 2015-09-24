@@ -1,0 +1,11 @@
+.action {
+    background-color: maroon;
+}
+
+.fail {
+    color: darkred;
+}
+
+.success {
+    color: lightgreen;
+}

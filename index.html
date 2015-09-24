@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Event sourcing / CQRS : live coding</title>
+
+		<meta name="description" content="Support aux speakers pour la présentation">
+
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/moon.css" id="theme">
+		<link rel="stylesheet" href="assets/live-coding.css">
+
+		<style>
+			.action > img {
+				height: 60pt;
+			}
+		</style>
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h2>Checks</h2>
+					<ul>
+						<li><code>git checkout live-coding-1</code></li>
+						<li><code>mvn clean</code></li>
+						<li>Navigateur ouvert <a href="file:///tmp/game-state.json">file:///tmp/game-state.json</a></li>
+						<li>IDE ouvert</li>
+					</ul>
+				</section>
+				<section data-background="assets/sebastian.jpg" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>Bienvenue</h2>
+					<ul>
+						<li>Démarche : présentation des concepts event sourcing / CQRS par du code</li>
+						<li>Attention : c'est un live coding</li>
+					</ul>
+				</section>
+				<section data-background="assets/sebastian.jpg" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>Présentation</h2>
+					<ul>
+						<li>Nom</li>
+						<li>Job</li>
+						<li>Société</li>
+					</ul>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>Plan</h2>
+					<h3>1. Event sourcing</h3>
+					<ol>
+						<li>Comment on va voir émerger <em>naturellement</em> les événements du système</li>
+						<li>Comment on va découvrir les fonctionnalités utiles d'un <em>event store</em></li>
+					</ol>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>Plan</h2>
+					<h3>2. CQRS</h3>
+					<ol>
+						<li>Pourquoi découper son système en commandes et en queries</li>
+						<li>Comment découper son système et commandes et en queries</li>
+						<li>Pourquoi CQRS s'adapte extrèmement bien à l'event sourcing</li>
+					</ol>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>Plan</h2>
+					<h3>3. Stratégies de rejeu</h3>
+					<ol>
+						<li>Comment l'event sourcing vous permet de rejouer le passé</li>
+						<li>Quels sont les intérêts de pouvoir rejouer les événements immuables du passé</li>
+					</ol>
+				</section>
+				<section data-background="assets/sebastian.jpg" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>Préambule</h2>
+					<h3>Notre cas d'étude</h3>
+					<ul>
+						<li>Connaissez-vous les katas de refactoring ?</li>
+						<li>Trivia : du code <em>dégeu</em> <span class="action">montrer <code>Game</code></span></li>
+					</ul>
+				</section>
+				<section data-background="assets/sebastian.jpg" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>Préambule</h2>
+					<h3>Notre cas d'étude</h3>
+					<ul>
+						<li>Principe du jeu :
+							<ol>
+								<li>des joueurs</li>
+								<li>des questions dans des catégories</li>
+								<li>un plateau</li>
+								<li>un dé</li>
+								<li>un maître du jeu</li>
+								<li>une prison</li>
+							</ol>
+						</li>
+						<li>Cinématique <span class="action">montrer <code>GameRunner</code></span></li>
+					</ul>
+				</section>
+				<section data-background="assets/sebastian.jpg" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>Préambule</h2>
+					<h3>Notre cas d'étude</h3>
+					<p>On va commencer le kata ensemble en écrivant des tests</p>
+					<p>C'est là normalement que vous vous demandez si vous vous ne vous êtes pas trompés de salle</p>
+					<p>On vous confirme : c'est bien un live coding sur Event sourcing / CQRS</p>
+					<p>Un peu de patience : vous allez comprendre</p>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>1 - ES - events</h2>
+					<p class="action">Aller dans <code>GameTest</code></p>
+					<p class="action">Tester la fonctionalité d'ajout d'un joueur : <code>should_add_one_player()</code></p>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>1 - ES - events</h2>
+					<pre><code data-trim>
+assertThat(result).isTrue()
+assertThat(game.howManyPlayers()).isEqualTo(1)
+					</code></pre>
+					<p>Pas suffisant pour être sûr que le nom du joueur est bien pris en compte</p>
+					<p class="action">Lancer le test</p>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>1 - ES - events</h2>
+					<p>Oh regarde : il y a des sorties dans la console</p>
+					<p>Ça serait pas des événements par hasard ?</p>
+					<p class="action">Montrer l'image 1 <img src="images/1.png" alt="Game write logs"/></p>
+					<pre><code data-trim>
+assertThat(eventStore.events()).containsExactly(
+    new PlayerWasAdded("eric"),
+    new PlayersCount(1));
+					</code></pre>
+					<p class="action">Implémenter <code>PlayerWasAdded</code> et <code>PlayersCount</code> qui doivent implémenter <code>Events</code> et dans le package <code>event</code></p>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>1 - ES - events</h2>
+					<p>Ajout de <code>@Rule EventStore</code></p>
+					<p>Fonction <code>String -> Event</code> qui retourne :</p>
+					<p><code>return new UnknownEvent(line);</code></p>
+					<p class="fail">Ça fail</p>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>1 - ES - events</h2>
+					<p>Implémenter la lambda</p>
+                    <pre><code data-trim>
+line -> {
+    Matcher matcher;
+    PlayerWasAdded[TAB]
+    PlayersCount[TAB]
+    return new UnknownEvent(line);
+}
+					</code></pre>
+					<p class="success">Ça passe</p>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>1 - ES</h2>
+					<p class="action">Montrer l'image 2 <img src="images/2.png" alt="GameTest uses event EventStore to assert Game behavior"/></p>
+					<p><strong>Résumé</strong> : on a interprété les sorties de la console comme des événements expoitables dans un event store.</p>
+					<p><strong>Transition</strong> : nous allons découvrir quelques fonctionnalités d'un event store à partir des tests.</p>
+				</section>
+				<section data-background="assets/sebastian.jpg" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>1 - ES - start</h2>
+					<p class="action">Dupliquer le test précédent en <code>should_add_two_players</code></p>
+					<p class="action">Ajouter <code>game.add("Pierre-Jean")</code></p>
+					<p class="action">Ajouter les assertions seulement sur</p>
+					<ul>
+						<li><code>seb</code></li>
+						<li><em>count</em> à 2</li>
+					</ul>
+					<p class="fail">ça fail</p>
+				</section>
+				<section data-background="assets/sebastian.jpg" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>1 - ES - start</h2>
+					<p><code>EventStore</code> doit enregistrer les événements quand <strong>je</strong> le décide</p>
+					<p class="action">Ajouter <code>eventStore.start()</code></p>
+					<p class="success">Ça passe</p>
+					<p class="action">Aller voir l'implem</p>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>1 - ES - filtre</h2>
+					<p>On ne voudrait parfois ne s'intéresser qu'à un seul type d'event</p>
+					<p class="action">Dupliquer le test précédent en <code>should_add_players_with_same_name</code></p>
+					<p class="action">Ajouter deux fois <code>"Pierre-Jean"</code></p>
+					<p class="action">Asserter seulement <code>PlayerWasAdded</code></p>
+					<p>C'est plus lisible pour le test</p>
+					<p class="fail">ça fail</p>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>1 - ES - filtre</h2>
+					<p><code>eventStore.events(PlayerWasAdded.class)</code></p>
+					<p class="success">Ça passe</p>
+					<p>Aller voir l'implem</p>
+				</section>
+				<section data-background="assets/sebastian.jpg" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>1 - ES - proc</h2>
+					<p>Oh là là c'est embêtant toutes ces sorties dans la console</p>
+					<p>Comment on clean un peu tout ça ?</p>
+					<p>Ajouter <code>eventStore.debug()</code> au début du test</p>
+					<p style="color: red">Ça compile pas</p>
+				</section>
+				<section data-background="assets/sebastian.jpg" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>1 - ES - proc</h2>
+					<p>Créer la méthode dans <code>EventStore</code></p>
+					<p>Expliquer les processeurs</p>
+					<p>Bouger l'initialisation des 2 processeurs existants dans <code>debug()</code></p>
+					<pre><code>
+preProcessors.add(line -> console.format("%20s -> ", line));
+postProcessors.add(console::println);
+					</code></pre>
+					<p style="color: green">Ça compile et on ne voit que les logs qui nous intéressent</p>
+				</section>
+				<section data-background="assets/sebastian.jpg" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>1 &rarr; 2</h2>
+					<p>Il y a plein d'autres fonctionnalités dans un <code>EventStore</code></p>
+					<p>On va s'arrêter là</p>
+					<p><strong>Résumé</strong> : c'est quoi l'EventStore ?</p>
+					<p>C'est la base de l'event sourcing</p>
+					<p>Un système de persistance d'événements immuables et chronologiques</p>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>1 &rarr; 2</h2>
+					<p>On vous avait promis CQRS</p>
+					<p>Découvrons les concepts par du code</p>
+					<p class="action"><code>git checkout live-coding-2</code></p>
+					<p class="action"><code>IntelliJ : rebuild project</code></p>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>2 - CQRS - Segreg.</h2>
+					<blockquote>&ldquo;Command Query Responsability Segregation&rdquo;</blockquote>
+					<p>On va grave ségreger</p>
+					<p>Créer les interfaces <code>Commands</code> et <code>Queries</code></p>
+					<p><code>Game</code> les implémente</p>
+					<p>Parcourir les méthodes (noms et implem)</p>
+					<p>Choisir dans quelle interface ça matche</p>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>2 - CQRS - Segreg.</h2>
+					<p>On doit arriver à ça</p>
+					<pre><code>
+Commands
+ boolean add(String)
+ void roll(int)
+ boolean wasCorrectlyAnswered()
+ boolean wrongAnswer()
+Queries
+ boolean isPlayable()
+ int howManyPlayers()
+					</code></pre>
+					<p class="action">Montrer l'image 3 <img src="images/3.png" alt="Game as a CQRS implementation"/></p>
+				</section>
+				<section data-background="assets/sebastian.jpg" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>2 - CQRS - Segreg.</h2>
+					<h3>Commands</h3>
+					<p>Transition: on a vu le découpage fonctionnel, voyons le découpage technique</p>
+					<p class="action">Aller dans l'interface <code>Commands</code></p>
+					<p>Sur les commandes, on peut juste remarquer qu'elles ne sont pas toutes <code>void</code></p>
+					<p>Généralement on préfère faire du <em>fire and forget</em> et être asynchrone sur les commandes</p>
+					<p>Prendre l'exemple de <code>add</code> qui retourne toujours <code>true</code> !</p>
+				</section>
+				<section data-background="assets/sebastian.jpg" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>2 - CQRS - Segreg.</h2>
+					<h3>Queries</h3>
+					<p class="action">Aller dans l'interface <code>Queries</code></p>
+					<p class="action">Montrer les usages de <code>isPlayable()</code></p>
+					<p>Utilisé que dans les tests : c'est du code mort</p>
+					<p class="action">Supprimer <code>isPlayable</code> et ses usages</p>
+				</section>
+				<section data-background="assets/sebastian.jpg" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>2 - CQRS - Segreg.</h2>
+					<h3>Queries</h3>
+					<p class="action">Revenir sur l'interface <code>Queries</code></p>
+					<p class="action">Montrer les usages de <code>howManyPlayers()</code></p>
+					<p>C'est une méthode privée</p>
+					<p class="action">Supprimer <code>howManyPlayers()</code></p>
+				</section>
+				<section data-background="assets/sebastian.jpg" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>2 - CQRS - Segreg.</h2>
+					<h3>Queries</h3>
+					<p class="action">Revenir sur l'interface <code>Queries</code></p>
+					<p>Il n'y a pas de <em>queries</em> dans <code>Game</code></p>
+					<p>C'est une implémentation du circuit d'écriture du système</p>
+					<p class="action">Montrer l'image 4 <img src="images/4.png" alt="Game doesn't implements any queries"/></p>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>2 - CQRS - Segreg.</h2>
+					<h3>Queries</h3>
+					<p>Nouveau scénario : notre jeu a du succès. Beaucoup de succès.</p>
+					<p>Notre PO nous demande d'implémenter un service web qui permet de récupérer à tout moment l'état du jeu</p>
+					<p>Nous allons développer un composant dédié : <code>GameState</code></p>
+					<p class="action">Afficher <code>GameState</code></p>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>2 - CQRS - Segreg.</h2>
+					<h3>Queries</h3>
+					<p>Il faut réparer <code>GameState</code></p>
+					<p class="action">Exécuter <code>GameStateTest</code></p>
+					<p class="fail">Ça fail</p>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>2 - CQRS - Segreg.</h2>
+					<h3>Queries</h3>
+					<p class="action">Réparer <code>should_add_player</code></p>
+					<p>Laisser <code>should_write_json_file</code> et <code>should_write_json_file_at_startup</code> pour la fin</p>
+				</section>
+				<section data-background="assets/sebastian.jpg" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>2 - CQRS - Segreg.</h2>
+					<h3>Queries</h3>
+					<p>À chaque modification de l'état, nous allons écrire sur le disque</p>
+					<p class="action">Montrer l'image 5 <img src="images/5.png" alt="GameState uses events to write file to disk"/></p>
+				</section>
+				<section data-background="assets/sebastian.jpg" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>2 - CQRS - Segreg.</h2>
+					<h3>Queries</h3>
+					<p class="action">Créer la méthode <code>write()</code>, copier-coller le code de création de l'<code>ObjectMapper</code> et ajouter</p>
+					<pre><code>
+try {
+    File file = Paths.get("/tmp", "game-state.json").toFile();
+    mapper.writeValue(file, this);
+} catch (IOException e) {
+    throw new UncheckedIOException(e);
+}
+					</code></pre>
+					<p class="action">Appeler <code>write()</code> dans le constructeur et à chaque événement qui modifie un état</p>
+					<p class="success">Ça passe</p>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>2 - CQRS - Segreg.</h2>
+					<h3>Démo</h3>
+					<p class="action">Montrer la méthode <code>main()</code></p>
+					<p class="action">Exécuter la méthode <code>main()</code></p>
+					<p class="action">Dans un navigateur : <a href="file:///tmp/game-state.json">file:///tmp/game-state.json</a></p>
+					<p class="action">Entrer <code>seb was added</code></p>
+					<p class="action">Rafraîchir la page</p>
+				</section>
+				<section data-background="assets/sebastian.jpg" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>2 &rarr; 3</h2>
+					<p><em>Résumé</em> : on a vu concrètement comment séparer les responsabilités lecture/écriture</p>
+					<p>On a vu que l'implémentation était simplifiée si on travaillait déjà en event sourcing</p>
+					<p>Le problème principal que CQRS essaie de résoudre est bien la performance</p>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>2 &rarr; 3</h2>
+					<p>Depuis le début, on ne fait qu'avancer dans les événements.</p>
+					<p>Que se passe-t-il si un problème survient lors de l'envoi des messages ?</p>
+					<p>Comment faire si on doit être tolérant à la panne, voire restaurer l'état du système 10 minutes/un jour avant ?</p>
+					<p class="action"><code>git checkout live-coding-3</code></p>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>3 - Snapshots</h2>
+					<p>Pour que ça vous parle un peu, on a fait intervenir un graphiste, un UX designer et une modéliste 3D</p>
+					<p class="action">Lancer <code>TriviaClient</code></p>
+					<p class="action">Taper <code>o</code> pour charger la liste des événements.</p>
+					<p class="action">Scroller ou utiliser les flèches</p>
+					<p>Ce qu'on aimerait c'est pouvoir revenir en arrière</p>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>3 - Snapshots</h2>
+					<p class="action">Montrer l'image 6 <img src="images/6.png" alt="Big picture"/></p>
+					<p>On a déjà une implémentation de snapshot</p>
+					<p class="action">Aller dans <code>Snapshots</code></p>
+					<p>On est en terrain connu :</p>
+					<ul>
+						<li>c'est (encore) une implémentation de <code>EventsListener</code></li>
+					    <li>ça délègue à <code>GameState</code></li>
+					</ul>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>3 - Snapshots</h2>
+					<p class="action">Aller sur <code>SnapshotsTest</code></p>
+					<p class="action">Lancer les tests</p>
+					<p class="fail">Ça fail</p>
+					<p>Le but ici est de définir une stratégie de snapshot : à l'état initial et tous les 10 événements</p>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>3 - Snapshots</h2>
+					<p class="action">Appeler <code>snapshot()</code> dans le constructeur</p>
+					<p>Générer un snapshot tous les 10 événements</p>
+					<p>Dans <code>newEvent()</code>:<br><code>if (index % 10 == 0) snapshot();</code></p>
+					<p class="success">Ça passe</p>
+				</section>
+				<section data-background="assets/eric.png" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>3 - Snapshots</h2>
+					<p>Démo</p>
+					<p class="action">Lancer <code>TriviaClient</code></p>
+				</section>
+				<section data-background="assets/sebastian.jpg" data-background-repeat="no-repeat" data-background-size="48pt" data-background-position="top left">
+					<h2>Conclusion</h2>
+					<p>Event Sourcing c'est proche du métier : EventStorming, système auditable</p>
+					<p>CQRS ça clarifie les choses, ça apporte de la perf</p>
+					<p>Statégies de rejeu important pour la résilience</p>
+				</section>
+			</div>
+
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script>
+
+			// Also available as an ES module, see:
+			// https://revealjs.com/initialization/
+			Reveal.initialize({
+				slideNumber: true,
+				history: true,
+				center: false,
+				hash: true,
+
+				transition: 'none',
+
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealHighlight ]
+			});
+
+		</script>
+
+	</body>
+</html>

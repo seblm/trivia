@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title></title>
+    <style>
+body {
+    font-family: sans-serif;
+}
+a {
+    color: grey;
+    text-decoration: none;
+}
+    </style>
+    <script>
+    const LEFT = 37,
+            RIGHT = 39,
+            TITLES = [
+                'Game write logs',
+                'GameTest uses event EventStore to assert Game behavior',
+                'Game as a CQRS implementation',
+                'Game doesn\'t implements any queries',
+                'GameState uses events to write file to disk',
+                'Big picture'
+            ];
+    window.onload = function() {
+        var index = 0;
+        displayImage(1);
+        document.onkeydown = keyDown;
+        function keyDown(e) {
+            if (e.keyCode === RIGHT) {
+                index++;
+                if (index > 5) {
+                    index = 0;
+                }
+            } else if (e.keyCode === LEFT) {
+                index--;
+                if (index < 0) {
+                    index = 5;
+                }
+            }
+            displayImage(index + 1);
+        }
+        function displayImage(index) {
+            document.getElementById('image').src = index + '.png';
+            document.getElementById('index').innerHTML = index;
+            document.title = TITLES[index - 1];
+        }
+    };
+    </script>
+</head>
+<body>
+<div id="index"></div>
+<div style="text-align: center;"><img id="image" src=""></div>
+</body>
+
+</html>
