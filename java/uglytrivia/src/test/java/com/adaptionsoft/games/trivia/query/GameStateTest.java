@@ -26,13 +26,12 @@ public class GameStateTest {
 
     @Before
     public void initializeFile() {
-        this.file = Paths.get("target", "game-state", "game-state.json");
+        this.file = Paths.get("target", "game-state.json");
     }
-    
+
     @After
     public void deleteFile() {
         this.file.toFile().delete();
-        this.file.getParent().toFile().delete();
     }
 
     @Test
@@ -41,81 +40,81 @@ public class GameStateTest {
 
         assertThat(gameState.getCurrentCategory()).isNull();
     }
-    
+
     @Test
     public void should_have_current_category() {
         GameState gameState = new GameState();
-        
+
         gameState.on(new CategoryWas(Pop));
 
         assertThat(gameState.getCurrentCategory()).isEqualTo(Pop);
     }
-    
+
     @Test
     public void should_not_have_any_player_at_startup() {
         GameState gameState = new GameState();
-        
+
         assertThat(gameState.getCurrentPlayer()).isNull();
     }
-    
+
     @Test
     public void should_not_have_current_player_if_it_wasn_t_added() {
         GameState gameState = new GameState();
 
         gameState.on(new CurrentPlayerWas("player"));
-        
+
         assertThat(gameState.getCurrentPlayer()).isNull();
     }
-    
+
     @Test
     public void should_have_current_player() {
         GameState gameState = new GameState();
 
         gameState.on(new PlayerWasAdded("player"));
         gameState.on(new CurrentPlayerWas("player"));
-        
+
         assertThat(gameState.getCurrentPlayer()).isEqualTo(new Player("player"));
     }
-    
+
     @Test
     public void should_update_location_of_player() {
         GameState gameState = new GameState();
         gameState.on(new PlayerWasAdded("player"));
-        
+
         gameState.on(new LocationWas("player", 3));
 
         gameState.on(new CurrentPlayerWas("player"));
         assertThat(gameState.getCurrentPlayer()).isEqualTo(new Player("player").location(3));
     }
-    
+
     @Test
     public void should_update_gold_coins_of_player() {
         GameState gameState = new GameState();
         gameState.on(new PlayerWasAdded("player"));
-        
+
         gameState.on(new NewGoldCoinsCount("player", 4));
 
         gameState.on(new CurrentPlayerWas("player"));
         assertThat(gameState.getCurrentPlayer()).isEqualTo(new Player("player").goldCoins(4));
     }
-    
+
     @Test
     public void should_getting_out_of_the_penalty_box() {
         GameState gameState = new GameState();
         gameState.on(new PlayerWasAdded("player"));
         gameState.on(new PlayerWasSentToPenaltyBox("player"));
-        
+
         gameState.on(new PlayerWasGettingOutOfThePenaltyBox("player"));
 
         gameState.on(new CurrentPlayerWas("player"));
         assertThat(gameState.getCurrentPlayer()).isEqualTo(new Player("player").inPenaltyBox(false));
     }
-    
+
     @Test
     public void should_send_player_to_penalty_box() {
         GameState gameState = new GameState();
         gameState.on(new PlayerWasAdded("player"));
-        
+
         gameState.on(new PlayerWasSentToPenaltyBox("player"));
 
         gameState.on(new CurrentPlayerWas("player"));
@@ -127,7 +126,7 @@ public class GameStateTest {
         GameState gameState = new GameState();
 
         Map<Category, Integer> questions = gameState.getQuestions();
-        
+
         assertThat(questions).containsExactly(
                 entry(Sports, 50),
                 entry(Rock, 50),
@@ -135,11 +134,11 @@ public class GameStateTest {
                 entry(Science, 50)
         );
     }
-    
+
     @Test
     public void should_decrement_questions_once_asked() {
         GameState gameState = new GameState();
-        
+
         gameState.on(new QuestionWasAsked(Science, 0));
 
         assertThat(gameState.getQuestions().get(Science)).isEqualTo(49);
@@ -148,17 +147,31 @@ public class GameStateTest {
     @Test
     public void should_not_have_any_dice_at_startup() {
         GameState gameState = new GameState();
-        
+
         assertThat(gameState.getDice()).isNull();
     }
-    
+
     @Test
     public void should_have_dice() {
         GameState gameState = new GameState();
-        
+
         gameState.on(new Rolled(5));
 
         assertThat(gameState.getDice()).isEqualTo(5);
+    }
+
+    @Test
+    public void should_write_json_file_at_startup() {
+        ObjectMapper mapper = new ObjectMapper()
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+                .enable(SerializationFeature.INDENT_OUTPUT);
+        GameState expectedState = new GameState();
+
+        try {
+            assertThat(file).exists().hasContent(mapper.writeValueAsString(expectedState));
+        } catch (JsonProcessingException e) {
+            fail("Error during serializing expected state", e);
+        }
     }
 
     @Test
