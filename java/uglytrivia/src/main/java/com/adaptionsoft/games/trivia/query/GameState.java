@@ -3,6 +3,10 @@ package com.adaptionsoft.games.trivia.query;
 import com.adaptionsoft.games.trivia.Category;
 import com.adaptionsoft.games.trivia.event.*;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.SortedMap;
@@ -104,6 +108,16 @@ public class GameState implements EventsListener {
 
     @Override
     public void on(UnknownEvent event) {
+    }
+
+    public static void main(String[] args) {
+        GameState gameState = new GameState();
+
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(System.in))) {
+            in.lines().forEach(line -> EventsListener.dispatch(line, gameState));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
 }
