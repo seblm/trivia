@@ -201,7 +201,7 @@ public class TriviaClient extends PApplet implements EventsListener, Restorable 
             eventsWalker.next(event.getCount());
             return;
         }
-        int numberOfEventsToRollback = snapshots.restore(abs(event.getCount()));
+        int numberOfEventsToRollback = snapshots.restore(1);
         eventsWalker.back(numberOfEventsToRollback);
     }
 
