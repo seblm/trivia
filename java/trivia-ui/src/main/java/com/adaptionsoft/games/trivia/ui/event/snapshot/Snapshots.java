@@ -116,7 +116,7 @@ public class Snapshots implements EventsListener {
     }
 
     public int restore(int numberOfRollbacks) {
-        if (index <= 0 || numberOfRollbacks <= 0) {
+        if (index <= 0 || numberOfRollbacks <= 0 || this.snapshots.isEmpty()) {
             return 0;
         }
 
