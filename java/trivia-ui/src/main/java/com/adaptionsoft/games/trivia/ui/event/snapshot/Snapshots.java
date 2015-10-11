@@ -19,7 +19,6 @@ public class Snapshots implements EventsListener {
         this.snapshots = new LinkedList<>();
         this.state = new GameState(false);
         this.restorable = restorable;
-        this.snapshot();
     }
 
     @Override
@@ -109,9 +108,6 @@ public class Snapshots implements EventsListener {
     private void newEvent() {
         index++;
         System.out.format("index %d%n", index);
-        if (index % 10 == 0) {
-            snapshot();
-        }
     }
 
     private void snapshot() {
