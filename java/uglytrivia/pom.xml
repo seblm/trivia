@@ -14,6 +14,7 @@
             <groupId>com.adaptionsoft.games</groupId>
             <artifactId>processor</artifactId>
             <version>${project.version}</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
