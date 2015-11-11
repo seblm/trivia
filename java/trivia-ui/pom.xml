@@ -17,7 +17,7 @@
         <dependency>
             <groupId>org.processing</groupId>
             <artifactId>core</artifactId>
-            <version>3.0-beta6</version>
+            <version>3.0.1</version>
             <scope>system</scope>
             <systemPath>/Applications/Processing.app/Contents/Java/core.jar</systemPath>
         </dependency>
