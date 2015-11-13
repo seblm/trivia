@@ -181,7 +181,7 @@ public class TriviaClient extends PApplet implements EventsListener, Restorable 
             return;
         }
         
-        if (event.isMetaDown() && (event.getKey() == 'o' || event.getKey() == 'O')) {
+        if (event.getKey() == 'o' || event.getKey() == 'O') {
             List<String> scenarii = FileEventWalker.referenceFiles().map(File::getName).collect(toList());
             String scenario = (String) JOptionPane.showInputDialog(null, "Please choose your scenario:", "Scenarii", JOptionPane.PLAIN_MESSAGE, null, scenarii.toArray(), null);
             if (scenario == null) {
