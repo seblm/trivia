@@ -19,7 +19,7 @@
             <artifactId>core</artifactId>
             <version>3.0.1</version>
             <scope>system</scope>
-            <systemPath>/Applications/Processing.app/Contents/Java/core.jar</systemPath>
+            <systemPath>${processing.path}</systemPath>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -46,5 +46,30 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>Mac OS X</id>
+            <activation>
+                <os>
+                    <name>Mac OS X</name>
+                </os>
+            </activation>
+            <properties>
+                <processing.path>/Applications/Processing.app/Contents/Java/core.jar</processing.path>
+            </properties>
+        </profile>
+        <profile>
+            <id>linux</id>
+            <activation>
+                <os>
+                    <name>linux</name>
+                </os>
+            </activation>
+            <properties>
+                <processing.path>${user.home}/Applications/processing-3.0.1/core/library/core.jar</processing.path>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>
