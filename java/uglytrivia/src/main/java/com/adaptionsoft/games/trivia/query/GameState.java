@@ -64,18 +64,22 @@ public class GameState implements EventsListener {
 
     @Override
     public void on(CategoryWas event) {
+        currentCategory = Optional.of(event.category);
     }
 
     @Override
     public void on(CurrentPlayerWas event) {
+        currentPlayer = players.get(event.getPlayer());
     }
 
     @Override
     public void on(LocationWas event) {
+        players.get(event.player).ifPresent(player -> player.location(event.newLocation));
     }
 
     @Override
     public void on(NewGoldCoinsCount event) {
+        players.get(event.player).ifPresent(player -> player.goldCoins(event.newGoldCoinsCount));
     }
 
     @Override
@@ -88,6 +92,7 @@ public class GameState implements EventsListener {
 
     @Override
     public void on(PlayerWasGettingOutOfThePenaltyBox event) {
+        players.get(event.player).ifPresent(player -> player.inPenaltyBox(false));
     }
 
     @Override
@@ -96,14 +101,17 @@ public class GameState implements EventsListener {
 
     @Override
     public void on(PlayerWasSentToPenaltyBox event) {
+        players.get(event.player).ifPresent(player -> player.inPenaltyBox(true));
     }
 
     @Override
     public void on(QuestionWasAsked event) {
+        questions.remove(event.category, event.questionNumber);
     }
 
     @Override
     public void on(Rolled event) {
+        dice = Optional.of(event.roll);
     }
 
     @Override

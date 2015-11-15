@@ -58,6 +58,15 @@ public class GameStateTest {
     }
 
     @Test
+    public void should_add_player() {
+        GameState gameState = new GameState();
+
+        gameState.on(new PlayerWasAdded("player"));
+
+        assertThat(gameState.getPlayers()).containsOnly(entry("player", new Player("player")));
+    }
+
+    @Test
     public void should_not_have_current_player_if_it_wasn_t_added() {
         GameState gameState = new GameState();
 
