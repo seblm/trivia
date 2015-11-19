@@ -16,6 +16,8 @@ import static java.util.Arrays.stream;
 import static java.util.Optional.empty;
 
 public class GameState implements EventsListener {
+    private static final String PROMPT = "GameState> ";
+
     final Players players;
     final Questions questions;
 
@@ -122,7 +124,14 @@ public class GameState implements EventsListener {
         GameState gameState = new GameState();
 
         try (BufferedReader in = new BufferedReader(new InputStreamReader(System.in))) {
-            in.lines().forEach(line -> EventsListener.dispatch(line, gameState));
+            System.out.print(PROMPT);
+            in.lines().forEach(line -> {
+                if ("exit".equalsIgnoreCase(line.trim())) {
+                    System.exit(0);
+                }
+                Event event = EventsListener.dispatch(line, gameState);
+                System.out.format("%s%n%n%s", event, PROMPT);
+            });
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
