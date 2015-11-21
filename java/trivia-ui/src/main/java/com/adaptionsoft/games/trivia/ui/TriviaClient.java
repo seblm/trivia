@@ -78,7 +78,6 @@ public class TriviaClient extends PApplet implements EventsListener, Restorable 
         }
 
         new Thread(new UpdateUIWithEvents(blockingProducerConsumer, this, snapshots), "EventConsumer").start();
-        new Thread(new HTTPServer(blockingProducerConsumer), "EventProducer").start();
     }
 
     @Override
